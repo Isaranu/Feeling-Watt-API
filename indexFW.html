@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Test APIs of Feeling watt project with IoTtweet.com</title>
+</head>
+
+<link rel="stylesheet" href="src/css/w3.css">
+
+<style>
+h2, p, input, button{
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+.gauge {
+      width: 270px;
+      height: 200px;
+    }
+</style>
+
+<body>
+  <h2>API Feeling Watt project with IoTtweet.com</h2>
+  <p>Test get data from APIs</p>
+
+  <!--Divided zone -->
+
+  <div class="w3-row">
+    <div class="w3-col m5">
+      <button class="w3-button w3-blue w3-border-round" id="get_now_btn">get now</button><br>
+      <button class="w3-button w3-blue w3-border-round" id="get_today_btn">get today</button><br>
+      <button class="w3-button w3-blue w3-border-round" id="get_24h_btn">get 24h</button><br>
+      <button class="w3-button w3-blue w3-border-round" id="get_cost_btn">get cost</button><br>
+      <button class="w3-button w3-blue w3-border-round" id="get_costtariff_btn">get cost tariff112</button><br>
+      <button class="w3-button w3-blue w3-border-round" id="get_costtariff212_btn">get cost tariff212</button><br>
+      <input id="n_data"><button class="w3-button w3-blue w3-border-round" id="get_n_btn">get n data</button><br>
+      <p>Date </p><input id="datepicker_start"><input id="datepicker_end">
+      <p>Time </p><input id="timepicker_start"><input id="timepicker_end"><br>
+      <button class="w3-button w3-blue w3-border-round" id="get_range_btn">get range</button>
+    </div>
+    <div class="w3-col m7">
+      <div id="g1" class="gauge" style="display:none;"></div>
+      <div><canvas id="mychart" width="300" height="150" style="display:none;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p id="parsed"></p>
+  </div>
+
+  <script src="src/java/jquery-3.0.0.min.js"></script>
+  <script src="src/java/jquery-ui.1.12.1.min.js"></script>
+  <script src="src/java/feelingwatt.js"></script>
+  <script src="src/java/jquery.ui.timepicker.js"></script>
+  <script src="src/java/Chart.min.js"></script>
+  <script src="src/java/Chart.bundle.min.js"></script>
+  <script src="src/java/justgage.js"></script>
+  <script src="src/java/raphael-2.1.4.min.js"></script>
+
+
+  <script>
+
+  var fw_chart_area = document.getElementById('mychart').getContext('2d');
+  var g1;
+
+  $('#get_now_btn').click(function(){
+    getfw_now('000012','aabbccdd');
+  });
+
+  $('#get_today_btn').click(function(){
+    getfw_today('000012','aabbccdd');
+  });
+
+  $('#get_24h_btn').click(function(){
+    getfw_24h('000012','aabbccdd');
+  });
+
+  $('#get_cost_btn').click(function(){
+    getfw_cost('000012','aabbccdd');
+  });
+
+  $('#get_costtariff_btn').click(function(){
+    getfw_costtariff('000012','aabbccdd');
+  });
+
+  $('#get_costtariff212_btn').click(function(){
+    getfw_costtariff212('000012','aabbccdd');
+  });
+
+  $('#get_n_btn').click(function(){
+    n_data = $('#n_data').val();
+    //console.log(n_data);
+    getfw_n_data('000012','aabbccdd');
+  });
+
+  $('#datepicker_start').datepicker({
+    dateFormat: 'ddMyy'
+  });
+  $('#datepicker_end').datepicker({
+    dateFormat: 'ddMyy'
+  });
+  $('#timepicker_start').timepicker();
+  $('#timepicker_end').timepicker();
+
+  $('#get_range_btn').click(function(){
+
+    fw_start_date = $('#datepicker_start').val();
+    fw_end_date = $('#datepicker_end').val();
+    fw_start_time = $('#timepicker_start').val();
+    fw_end_time = $('#timepicker_end').val();
+
+    console.log(fw_start_date);
+    console.log(fw_end_date);
+    console.log(fw_start_time);
+    console.log(fw_end_time);
+
+    getfw_range('000012','aabbccdd');
+  });
+
+function drawchart(_tstamp,_data){
+    $('#g1').hide();
+    $('#mychart').show();
+
+    chart = new Chart(fw_chart_area, {
+    type: 'bar',
+    data: {
+        labels: _tstamp,
+        datasets: [{
+            label: 'Test API feelingwatt',
+            fill: true,
+            lineTension: 0.5,
+            backgroundColor: "rgba(89, 255, 194, 0.3)",
+            //xAxisID: "Time",
+            //yAxisID: "dataread",
+            borderColor: "rgb(89, 255, 194)", //"rgb(54, 175, 252)",
+            data: _data
+        }]
+    },
+    options: {
+        animation: false,
+        scales: {
+          xAxes: [{
+            ticks:{
+              fontSize : 9
+              }
+            }],
+          yAxes: [{
+            scaleLabel: {
+              display: true,
+              labelString: 'Fw APIs'
+            }
+          }]
+        }
+      }
+    });
+  }
+
+  function drawgauge(_data, _max, _title, _label){
+    g1 = null;
+    $('#mychart').hide();
+    $('#g1').fadeIn('slow', function() {
+    });
+
+    g1 = new JustGage({
+        id: 'g1',
+        value: _data,
+        min: 0,
+        max: _max,
+        title: _title,
+        label: _label,
+        pointer: true,
+        gaugeWidthScale: 0.6,
+        customSectors: [{
+          color: '#ff0000',
+          lo: 50,
+          hi: 100
+        }, {
+          color: '#00ff00',
+          lo: 0,
+          hi: 50
+        }],
+        counter: true
+      });
+  }
+
+  </script>
+
+</body>
+
+</html>
